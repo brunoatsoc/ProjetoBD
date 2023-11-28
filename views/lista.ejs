@@ -1,0 +1,26 @@
+<!-- views/lista.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Pacotes</title>
+</head>
+<body>
+  <h1>Lista de Pacotes</h1>
+
+  <form action="/compra" method="post">
+    <ul>
+      <% pacotes.forEach(pacote => { %>
+        <li>
+          <%= pacote.detalhes_pacote %> - <%= pacote.destino %> - <%= pacote.preco %> - <%= pacote.nome_pacote %> - <%= pacote.data_viagem %> - <%= pacote.nome_fornecedor %> - <%= pacote.contato_fornecedor %> - <%= pacote.sevico_fornecido %>
+          <button type="submit">Comprar</button>
+        </li>
+      <% }); %>
+    </ul>
+  </form>
+  
+  <a href="/">Voltar</a>
+</body>
+</html>
