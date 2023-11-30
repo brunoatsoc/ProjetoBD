@@ -1,86 +1,74 @@
-CREATE DATABASE agencia_viagem;
+CREATE DATABASE agencia_viagem2;
 
-USE agencia_viagem;
+USE agencia_viagem2;
 
-CREATE TABLE `CLIENTE_CONTA` (
-  `nome_completo` varchar(100) DEFAULT NULL,
-  `cpf` varchar(20) NOT NULL,
-  `idade` int DEFAULT NULL,
-  `user_name` varchar(30) NOT NULL,
-  `senha` varchar(100) DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`cpf`,`user_name`)
+CREATE TABLE CLIENTE_CONTA(
+	nome_completo VARCHAR(100),
+	cpf VARCHAR(20),
+	idade INTEGER,
+	user_name VARCHAR(30),
+	senha VARCHAR(100),
+	email VARCHAR(100),
+	PRIMARY KEY(cpf, user_name)
 );
 
-CREATE TABLE `COMPRA` (
-  `id_pacote_fk` varchar(50) DEFAULT NULL,
-  `cpf_fk` varchar(20) DEFAULT NULL,
-  `user_name_fk` varchar(30) DEFAULT NULL,
-  KEY `id_pacote_fk` (`id_pacote_fk`),
-  KEY `cpf_fk` (`cpf_fk`,`user_name_fk`),
-  CONSTRAINT `COMPRA_ibfk_1` FOREIGN KEY (`id_pacote_fk`) REFERENCES `PACOTE_VIAGEM` (`id_pacote`),
-  CONSTRAINT `COMPRA_ibfk_2` FOREIGN KEY (`cpf_fk`, `user_name_fk`) REFERENCES `CLIENTE_CONTA` (`cpf`, `user_name`)
+CREATE TABLE FORNECEDOR(
+	id_fornecedor INTEGER PRIMARY KEY AUTO_INCREMENT,
+	nome_fornecedor VARCHAR(30),
+	contato_fornecedor VARCHAR(100),
+	servico_fornecido VARCHAR(100)
 );
 
-CREATE TABLE `FEEDBACK_CLIENTE` (
-  `data_comentario` datetime DEFAULT NULL,
-  `id_feedback` varchar(50) NOT NULL,
-  `comentario` varchar(200) DEFAULT NULL,
-  `id_pacote` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`id_feedback`),
-  KEY `id_pacote` (`id_pacote`),
-  CONSTRAINT `FEEDBACK_CLIENTE_ibfk_1` FOREIGN KEY (`id_pacote`) REFERENCES `PACOTE_VIAGEM` (`id_pacote`)
+CREATE TABLE FEEDBACK_CLIENTE(
+	data_comentario DATETIME,
+	id_feedback INTEGER PRIMARY KEY AUTO_INCREMENT,
+	comentario VARCHAR(200),
+	id_pacote_fk INTEGER
 );
 
-CREATE TABLE `FORNECEDOR` (
-  `id_fornecedor` varchar(50) NOT NULL,
-  `nome_fornecedor` varchar(30) DEFAULT NULL,
-  `contato_fornecedor` varchar(100) DEFAULT NULL,
-  `sevico_fornecido` varchar(30) DEFAULT NULL,
-  PRIMARY KEY (`id_fornecedor`)
+CREATE TABLE PACOTE_VIAGEM(
+	id_pacote INTEGER PRIMARY KEY AUTO_INCREMENT,
+	detalhes_pacote VARCHAR(500),
+	destino VARCHAR(50),
+	preco DECIMAL(10, 2),
+	nome_pacote VARCHAR(50),
+	data_viagem DATETIME
 );
 
-CREATE TABLE `PACOTE_VIAGEM` (
-  `id_pacote` varchar(50) NOT NULL,
-  `detalhes_pacote` varchar(500) DEFAULT NULL,
-  `destino` varchar(50) DEFAULT NULL,
-  `preco` decimal(10,2) DEFAULT NULL,
-  `nome_pacote` varchar(50) DEFAULT NULL,
-  `data_viagem` datetime DEFAULT NULL,
-  PRIMARY KEY (`id_pacote`)
+CREATE TABLE PROMOCAO(
+	nome_promocao VARCHAR(50),
+	descricao_promocao VARCHAR(500),
+	id_promocao INTEGER PRIMARY KEY AUTO_INCREMENT
 );
 
-CREATE TABLE `PARCERIA` (
-  `id_pacote_fk` varchar(50) DEFAULT NULL,
-  `id_fornecedor_fk` varchar(50) DEFAULT NULL,
-  KEY `id_pacote_fk` (`id_pacote_fk`),
-  KEY `id_fornecedor_fk` (`id_fornecedor_fk`),
-  CONSTRAINT `PARCERIA_ibfk_1` FOREIGN KEY (`id_pacote_fk`) REFERENCES `PACOTE_VIAGEM` (`id_pacote`),
-  CONSTRAINT `PARCERIA_ibfk_2` FOREIGN KEY (`id_fornecedor_fk`) REFERENCES `FORNECEDOR` (`id_fornecedor`)
+CREATE TABLE TEM(
+	id_pacote_fk INTEGER,
+	id_promocao_fk INTEGER,
+	FOREIGN KEY(id_pacote_fk) REFERENCES PACOTE_VIAGEM(id_pacote),
+	FOREIGN KEY(id_promocao_fk) REFERENCES PROMOCAO(id_promocao)
 );
 
-CREATE TABLE `POSTA` (
-  `cpf_fk` varchar(20) DEFAULT NULL,
-  `user_name_fk` varchar(30) DEFAULT NULL,
-  `id_feedback_fk` varchar(50) DEFAULT NULL,
-  KEY `cpf_fk` (`cpf_fk`,`user_name_fk`),
-  KEY `id_feedback_fk` (`id_feedback_fk`),
-  CONSTRAINT `POSTA_ibfk_1` FOREIGN KEY (`cpf_fk`, `user_name_fk`) REFERENCES `CLIENTE_CONTA` (`cpf`, `user_name`),
-  CONSTRAINT `POSTA_ibfk_2` FOREIGN KEY (`id_feedback_fk`) REFERENCES `FEEDBACK_CLIENTE` (`id_feedback`)
+CREATE TABLE PARCERIA(
+	id_pacote_fk INTEGER,
+	id_fornecedor_fk INTEGER,
+	FOREIGN KEY(id_pacote_fk) REFERENCES PACOTE_VIAGEM(id_pacote),
+	FOREIGN KEY(id_fornecedor_fk) REFERENCES FORNECEDOR(id_fornecedor)
 );
 
-CREATE TABLE `PROMOCAO` (
-  `nome_promocao` varchar(50) DEFAULT NULL,
-  `descricao_promocao` varchar(500) DEFAULT NULL,
-  `id_promocao` varchar(50) NOT NULL,
-  PRIMARY KEY (`id_promocao`)
+CREATE TABLE POSTA(
+	cpf_fk VARCHAR(20),
+	user_name_fk VARCHAR(30),
+	id_feedback_fk INTEGER,
+	FOREIGN KEY(cpf_fk, user_name_fk) REFERENCES CLIENTE_CONTA(cpf, user_name),
+	FOREIGN KEY(id_feedback_fk) REFERENCES FEEDBACK_CLIENTE(id_feedback)
 );
 
-CREATE TABLE `TEM` (
-  `id_pacote_fk` varchar(50) DEFAULT NULL,
-  `id_promocao_fk` varchar(50) DEFAULT NULL,
-  KEY `id_pacote_fk` (`id_pacote_fk`),
-  KEY `id_promocao_fk` (`id_promocao_fk`),
-  CONSTRAINT `TEM_ibfk_1` FOREIGN KEY (`id_pacote_fk`) REFERENCES `PACOTE_VIAGEM` (`id_pacote`),
-  CONSTRAINT `TEM_ibfk_2` FOREIGN KEY (`id_promocao_fk`) REFERENCES `PROMOCAO` (`id_promocao`)
+CREATE TABLE COMPRA(
+	id_pacote_fk INTEGER,
+	cpf_fk VARCHAR(20),
+	user_name_fk VARCHAR(30),
+	FOREIGN KEY(id_pacote_fk) REFERENCES PACOTE_VIAGEM(id_pacote),
+	FOREIGN KEY(cpf_fk, user_name_fk) REFERENCES CLIENTE_CONTA(cpf, user_name)
 );
+
+ALTER TABLE FEEDBACK_CLIENTE ADD FOREIGN KEY(id_pacote_fk) REFERENCES PACOTE_VIAGEM(id_pacote);

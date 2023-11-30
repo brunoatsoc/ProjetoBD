@@ -1,0 +1,29 @@
+<!-- views/comentarios.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comentarios</title>
+</head>
+<body>
+  <h1>Comentarios</h1>
+
+  <ul>
+    <% comentarios.forEach(comentario => { %>
+      <li>
+        <%= comentario.user_name %> - <%= comentario.data_comentario %> - <%= comentario.comentario %> - <%= comentario.data_comentario %>
+      </li>
+    <% }); %>
+  </ul>
+
+  <!-- Formulário para inserir um novo comentário -->
+  <form action="/postar_comentario/<%= id_pacote %>" method="post">
+    <input type="hidden" name="id_pacote" value="<%= id_pacote %>">
+    <label for="comentario">Novo Comentário:</label>
+    <textarea id="comentario" name="comentario" placeholder="Digite seu comentário"></textarea>
+    <button type="submit">Postar Comentário</button>
+  </form>
+</body>
+</html>

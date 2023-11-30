@@ -10,16 +10,24 @@
 <body>
   <h1>Lista de Pacotes</h1>
 
-  <form action="/compra" method="post">
-    <ul>
-      <% pacotes.forEach(pacote => { %>
-        <li>
-          <%= pacote.detalhes_pacote %> - <%= pacote.destino %> - <%= pacote.preco %> - <%= pacote.nome_pacote %> - <%= pacote.data_viagem %> - <%= pacote.nome_fornecedor %> - <%= pacote.contato_fornecedor %> - <%= pacote.sevico_fornecido %>
+  <ul>
+    <% pacotes.forEach(pacote => { %>
+      <li>
+        <%= pacote.detalhes_pacote %> - <%= pacote.destino %> - <%= pacote.preco %> - <%= pacote.nome_pacote %> - <%= pacote.data_viagem %> - <%= pacote.nome_fornecedor %> - <%= pacote.contato_fornecedor %> - <%= pacote.sevico_fornecido %>
+        
+        <!-- Formulário separado para cada pacote -->
+        <form action="/compra" method="post">
+          <input type="hidden" name="id_pacote" value="<%= pacote.id_pacote %>">
           <button type="submit">Comprar</button>
-        </li>
-      <% }); %>
-    </ul>
-  </form>
+        </form>
+        
+        <!-- Botão para ver os comentários -->
+        <a href="/comentarios/<%= pacote.id_pacote %>">
+          Comentarios
+        </a>
+      </li>
+    <% }); %>
+  </ul>
   
   <a href="/">Voltar</a>
 </body>
