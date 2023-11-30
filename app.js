@@ -1,4 +1,6 @@
 /*
+    Projeto de Banco de Dados feito por Vitor Coutinho Lima e Bruno Santos Costa
+
     Para iniciar o npm use este comando no terminal na pasta do seu projeto: npm init -y
     Para instalar as dependências nescessárias use o comando no terminal na pasta em que seu projeto está: npm install express ejs mysql
     Para executar esse codigo digite no terminal o comando: node app.js
