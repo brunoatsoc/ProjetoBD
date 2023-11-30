@@ -72,3 +72,25 @@ CREATE TABLE COMPRA(
 );
 
 ALTER TABLE FEEDBACK_CLIENTE ADD FOREIGN KEY(id_pacote_fk) REFERENCES PACOTE_VIAGEM(id_pacote);
+
+INSERT INTO PACOTE_VIAGEM (detalhes_pacote, destino, preco, nome_pacote, data_viagem) VALUES 
+("Viagem para Inglaterra, com visita a pontos turisticos.", "Inglaterra", 20000.00, "Pacote Viagem dos Sonhos", "2024-01-10 12:30:00");
+
+INSERT INTO PACOTE_VIAGEM (detalhes_pacote, destino, preco, nome_pacote, data_viagem) VALUES 
+("Viagem para França, com visita a pontos turisticos.", "França", 34000.00, "Pacote Viage até Paris", "2024-01-25 15:00:00");
+
+INSERT INTO PACOTE_VIAGEM (detalhes_pacote, destino, preco, nome_pacote, data_viagem) VALUES 
+("Viagem para Italia, com visita a pontos turisticos.", "Italia", 26000.00, "Pacote Conhecendo a Italia", "2024-02-10 18:30:00");
+
+INSERT INTO FORNECEDOR (nome_fornecedor, contato_fornecedor, servico_fornecido) VALUES 
+("Empresa Hotels", "hotels@email.com", "Hospedagem");
+
+INSERT INTO FORNECEDOR (nome_fornecedor, contato_fornecedor, servico_fornecido) VALUES 
+("Empresa Full Foods", "ffoods@email.com", "Restalrante");
+
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (4, 1);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (4, 2);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (5, 1);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (5, 2);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (6, 1);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (6, 2);
