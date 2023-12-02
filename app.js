@@ -106,7 +106,7 @@ app.post('/login', (req, res) => {
 //Rota para a pagina de mostrar a lista de pacotes disponiveis
 app.get('/lista', (req, res) => {
     //Comando select com join para trazer as informações dos pacotes de viagens
-    connection.query(`SELECT	PACOTE_VIAGEM.detalhes_pacote, PACOTE_VIAGEM.destino, PACOTE_VIAGEM.preco, PACOTE_VIAGEM.nome_pacote, PACOTE_VIAGEM.data_viagem, PROMOCAO.nome_promocao, PROMOCAO.descricao_promocao, PROMOCAO.valor_desconto, PACOTE_VIAGEM.preco - PROMOCAO.valor_desconto AS ValorComDesconto,
+    connection.query(`SELECT	PACOTE_VIAGEM.id_pacote, PACOTE_VIAGEM.detalhes_pacote, PACOTE_VIAGEM.destino, PACOTE_VIAGEM.preco, PACOTE_VIAGEM.nome_pacote, PACOTE_VIAGEM.data_viagem, PROMOCAO.nome_promocao, PROMOCAO.descricao_promocao, PROMOCAO.valor_desconto, PACOTE_VIAGEM.preco - PROMOCAO.valor_desconto AS ValorComDesconto,
     GROUP_CONCAT(FORNECEDOR.nome_fornecedor) as Fornecedores,
     GROUP_CONCAT(FORNECEDOR.contato_fornecedor) as ContatoFornecedor,
     GROUP_CONCAT(FORNECEDOR.servico_fornecido) as Servio
@@ -115,7 +115,7 @@ JOIN PARCERIA ON PACOTE_VIAGEM.id_pacote = PARCERIA.id_pacote_fk
 JOIN FORNECEDOR ON PARCERIA.id_fornecedor_fk = FORNECEDOR.id_fornecedor
 JOIN TEM ON PACOTE_VIAGEM.id_pacote = TEM.id_pacote_fk
 JOIN PROMOCAO ON PROMOCAO.id_promocao = TEM.id_promocao_fk
-GROUP BY PACOTE_VIAGEM.detalhes_pacote,
+GROUP BY PACOTE_VIAGEM.id_pacote, PACOTE_VIAGEM.detalhes_pacote,
      PACOTE_VIAGEM.destino,
      PACOTE_VIAGEM.preco,
      PACOTE_VIAGEM.nome_pacote,
@@ -131,6 +131,8 @@ GROUP BY PACOTE_VIAGEM.detalhes_pacote,
 //Rota para a opção compra
 app.post('/compra', (req, res) => {
     const { id_pacote } = req.body;
+
+    console.log(id_pacote);
   
     //Verificar se o usuário está logado
     if(!clienteEmail){
@@ -172,7 +174,7 @@ app.get("/comentarios/:id_pacote", (req, res) => {
         WHERE PACOTE_VIAGEM.id_pacote = ?
         ORDER BY FEEDBACK_CLIENTE.data_comentario;`, [id_pacote],
         (err, results) => {
-            if (err) throw err;
+            if(err) throw err;
             res.render("comentarios", { comentarios: results, id_pacote }); //Renderiza a pagina comentarios.ejs com os dados do select
         }
     );
@@ -268,13 +270,13 @@ app.post("/deletarconta", (req, res) => {
 
     //Deleta as compras feitas pelo usuario
     connection.query('DELETE FROM COMPRA WHERE user_name_fk = ?', [user_name], (err, result) => {
-        if (err) throw err;
+        if(err) throw err;
 
         //Verifica se senha é realmente a senha do usuario
-        if (result.affectedRows > 0 || senha === clienteSenha) {
+        if(result.affectedRows > 0 || senha === clienteSenha){
             //Deleta a postagens do usuario
             connection.query('DELETE FROM POSTA WHERE user_name_fk = ?', [user_name], (errPosta, resultPosta) => {
-                if (errPosta) throw errPosta;
+                if(errPosta) throw errPosta;
 
                 //Deleta a conta do cliente
                 connection.query('DELETE FROM CLIENTE_CONTA WHERE user_name = ? AND senha = ?', [user_name, senha], (errCompra, resultCompra) => {
@@ -283,7 +285,7 @@ app.post("/deletarconta", (req, res) => {
                     res.render("index");
                 });
             });
-        } else {
+        }else{
             res.send('Credenciais inválidas ou a conta não foi encontrada.'); //Envia uma aviso de que algun dado está invalido
         }
     });
