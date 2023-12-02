@@ -1,6 +1,6 @@
-CREATE DATABASE agencia_viagem2;
+CREATE DATABASE agencia_viagem;
 
-USE agencia_viagem2;
+USE agencia_viagem;
 
 CREATE TABLE CLIENTE_CONTA(
 	nome_completo VARCHAR(100),
@@ -38,7 +38,8 @@ CREATE TABLE PACOTE_VIAGEM(
 CREATE TABLE PROMOCAO(
 	nome_promocao VARCHAR(50),
 	descricao_promocao VARCHAR(500),
-	id_promocao INTEGER PRIMARY KEY AUTO_INCREMENT
+    valor_desconto DECIMAL(10, 2),
+	id_promocao INTEGER PRIMARY KEY
 );
 
 CREATE TABLE TEM(
@@ -88,9 +89,21 @@ INSERT INTO FORNECEDOR (nome_fornecedor, contato_fornecedor, servico_fornecido) 
 INSERT INTO FORNECEDOR (nome_fornecedor, contato_fornecedor, servico_fornecido) VALUES 
 ("Empresa Full Foods", "ffoods@email.com", "Restalrante");
 
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (4, 1);
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (4, 2);
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (5, 1);
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (5, 2);
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (6, 1);
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (6, 2);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (1, 1);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (1, 2);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (2, 1);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (2, 2);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (3, 1);
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (3, 2);
+
+INSERT INTO PROMOCAO (nome_promocao, descricao_promocao, valor_desconto, id_promocao) VALUES 
+("Viagem de Fim de Ano", "Com o fim de ano chagando é hora de aproveitar a vida e viajar para o lugar dos sonhos com nossas promoções", 2000.00, 1);
+
+INSERT INTO PROMOCAO (nome_promocao, descricao_promocao, valor_desconto, id_promocao) VALUES 
+("Fim de Ano Viajando", "Com o fim de ano chagando é hora de aproveitar a vida e viajar para o lugar dos sonhos com nossas promoções", 1000.00, 2);
+INSERT INTO PROMOCAO (nome_promocao, descricao_promocao, valor_desconto, id_promocao) VALUES 
+("Aproveitando o Fim de Ano", "Com o fim de ano chagando é hora de aproveitar a vida e viajar para o lugar dos sonhos com nossas promoções", 3000.00, 3);
+
+INSERT INTO TEM (id_pacote_fk, id_promocao_fk) VALUES (1, 1);
+INSERT INTO TEM (id_pacote_fk, id_promocao_fk) VALUES (2, 2);
+INSERT INTO TEM (id_pacote_fk, id_promocao_fk) VALUES (3, 3);
