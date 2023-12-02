@@ -1,0 +1,38 @@
+<!-- views/historico.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Compras</title>
+</head>
+<body>
+
+<h1>Histórico de Compras</h1>
+
+<table border="1">
+    <tr>
+        <th>Nome do Pacote</th>
+        <th>Destino</th>
+        <th>Preço</th>
+    </tr>
+
+    <% for(let i = 0; i < compras.length; i++) { %>
+        <tr>
+            <td><%= compras[i].nome_pacote %></td>
+            <td><%= compras[i].destino %></td>
+            <td><%= compras[i].preco %></td>
+        </tr>
+    <% } %>
+
+    <!-- Mostrar o total apenas uma vez -->
+    <tr>
+        <td colspan="2"><strong>Total</strong></td>
+        <td><%= results2[0].Total %></td>
+    </tr>
+
+</table>
+
+</body>
+</html>

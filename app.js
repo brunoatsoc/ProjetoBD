@@ -12,11 +12,15 @@
 const express = require("express");
 const mysql = require("mysql");
 const bodyParser = require("body-parser");
+const { render } = require("ejs");
+const e = require("express");
 
 const app = express();
 const port = 3000; //Porta que será usada
 
 let clienteEmail = null; //Variavel que guarda o email do cliente que está usando a conta
+let clienteCPF = null;
+let clienteSenha = null;
 
 //Configura o banco de dados MySQL
 const connection = mysql.createConnection({
@@ -82,6 +86,7 @@ app.post('/cadastro', (req, res) => {
 app.post('/login', (req, res) => {
     const { email, senha } = req.body; //Traz do formulario o email e a senha do usuario
     clienteEmail = email; //Salva o email do usuario
+    clienteSenha = senha;
 
     //Comando select para saber se as informações que o usuario digitou estão no banco de dados
     connection.query(
@@ -91,7 +96,7 @@ app.post('/login', (req, res) => {
   
             //Se estiver certo sera redirecionado para a pagina que mostra a lista de pacotes de viagem
             if(results.length > 0){
-                res.send('<a href="lista">Lista</a>');
+                res.send('<a href="lista">Lista de Pacotes</a> <a href="historicoCompras">Histórico de compras</a> <a href="atualizar">Atualizar Informações</a> <a href="deletar">Deletar Conta</a>');
             }else{
                 res.send('Credenciais inválidas!');
             }
@@ -195,6 +200,69 @@ app.post("/postar_comentario/:id_pacote", (req, res) => {
         });
     });
 });//Fim
+
+app.get("/historicoCompras", (req, res) => { 
+    connection.query(`SELECT PACOTE_VIAGEM.nome_pacote, PACOTE_VIAGEM.destino, PACOTE_VIAGEM.preco
+	FROM PACOTE_VIAGEM
+    JOIN COMPRA ON PACOTE_VIAGEM.id_pacote = COMPRA.id_pacote_fk
+    JOIN CLIENTE_CONTA ON CLIENTE_CONTA.user_name =  COMPRA.user_name_fk
+    WHERE CLIENTE_CONTA.email = "${clienteEmail}";`, (err, results) => {
+        if(err) throw err;
+
+        connection.query(`SELECT SUM(PACOTE_VIAGEM.preco) AS Total 
+        FROM PACOTE_VIAGEM
+        JOIN COMPRA ON PACOTE_VIAGEM.id_pacote = COMPRA.id_pacote_fk
+        JOIN CLIENTE_CONTA ON CLIENTE_CONTA.user_name =  COMPRA.user_name_fk
+        WHERE CLIENTE_CONTA.email = "${clienteEmail}";`, (err2, results2) => {
+            if(err2) throw err2;
+            console.log(results2);
+            res.render('historico', { compras: results, results2 });
+        });
+    });
+});
+
+app.get("/atualizar", (req, res) => {
+    res.render("atualizar.ejs");
+});
+
+app.post("/atualizarnome", (req, res) => {
+    const { nome_completo, user_name, senha, idade } = req.body;
+
+    connection.query(`UPDATE CLIENTE_CONTA SET nome_completo = "${nome_completo}", senha = "${senha}", idade = "${idade}" WHERE user_name = "${user_name}"`, (err, results) => {
+        if(err) throw err;
+
+        res.render("login");
+    });
+});
+
+app.get("/deletar", (req, res) => {
+    res.render("deletar.ejs");
+});
+
+app.post("/deletarconta", (req, res) => {
+    const { user_name, senha } = req.body;
+
+    console.log(user_name);
+    console.log(senha);
+
+    connection.query('DELETE FROM COMPRA WHERE user_name_fk = ?', [user_name], (err, result) => {
+        if (err) throw err;
+
+        if (result.affectedRows > 0 || senha === clienteSenha) {
+            connection.query('DELETE FROM POSTA WHERE user_name_fk = ?', [user_name], (errPosta, resultPosta) => {
+                if (errPosta) throw errPosta;
+
+                connection.query('DELETE FROM CLIENTE_CONTA WHERE user_name = ? AND senha = ?', [user_name, senha], (errCompra, resultCompra) => {
+                    if (errCompra) throw errCompra;
+
+                    res.render("index");
+                });
+            });
+        } else {
+            res.send('Credenciais inválidas ou a conta não foi encontrada.');
+        }
+    });
+});
 
 //Inicia o servidor
 app.listen(port, () => {
