@@ -14,13 +14,12 @@ const mysql = require("mysql");
 const bodyParser = require("body-parser");
 const { render } = require("ejs");
 const e = require("express");
-
 const app = express();
 const port = 3000; //Porta que será usada
 
 let clienteEmail = null; //Variavel que guarda o email do cliente que está usando a conta
-let clienteCPF = null;
-let clienteSenha = null;
+let clienteCPF = null; //Guarda o CPF do cliente
+let clienteSenha = null; //Guarda a senha do cliente
 
 //Configura o banco de dados MySQL
 const connection = mysql.createConnection({
@@ -107,10 +106,23 @@ app.post('/login', (req, res) => {
 //Rota para a pagina de mostrar a lista de pacotes disponiveis
 app.get('/lista', (req, res) => {
     //Comando select com join para trazer as informações dos pacotes de viagens
-    connection.query(`SELECT id_pacote, detalhes_pacote, destino, preco, nome_pacote, data_viagem, nome_fornecedor, contato_fornecedor, servico_fornecido
-    FROM PACOTE_VIAGEM
-    JOIN PARCERIA ON PACOTE_VIAGEM.id_pacote = PARCERIA.id_pacote_fk
-    JOIN FORNECEDOR ON PARCERIA.id_fornecedor_fk = FORNECEDOR.id_fornecedor`, (err, results) => {
+    connection.query(`SELECT	PACOTE_VIAGEM.detalhes_pacote, PACOTE_VIAGEM.destino, PACOTE_VIAGEM.preco, PACOTE_VIAGEM.nome_pacote, PACOTE_VIAGEM.data_viagem, PROMOCAO.nome_promocao, PROMOCAO.descricao_promocao, PROMOCAO.valor_desconto, PACOTE_VIAGEM.preco - PROMOCAO.valor_desconto AS ValorComDesconto,
+    GROUP_CONCAT(FORNECEDOR.nome_fornecedor) as Fornecedores,
+    GROUP_CONCAT(FORNECEDOR.contato_fornecedor) as ContatoFornecedor,
+    GROUP_CONCAT(FORNECEDOR.servico_fornecido) as Servio
+FROM PACOTE_VIAGEM
+JOIN PARCERIA ON PACOTE_VIAGEM.id_pacote = PARCERIA.id_pacote_fk
+JOIN FORNECEDOR ON PARCERIA.id_fornecedor_fk = FORNECEDOR.id_fornecedor
+JOIN TEM ON PACOTE_VIAGEM.id_pacote = TEM.id_pacote_fk
+JOIN PROMOCAO ON PROMOCAO.id_promocao = TEM.id_promocao_fk
+GROUP BY PACOTE_VIAGEM.detalhes_pacote,
+     PACOTE_VIAGEM.destino,
+     PACOTE_VIAGEM.preco,
+     PACOTE_VIAGEM.nome_pacote,
+     PACOTE_VIAGEM.data_viagem,
+     PROMOCAO.nome_promocao,
+     PROMOCAO.descricao_promocao,
+     PROMOCAO.valor_desconto;`, (err, results) => {
         if(err) throw err;
         res.render('lista', { pacotes: results }); //Vai renderizar a pagina de pacotes de viagem, os dados estão na variavel pacotes
     });
@@ -201,14 +213,18 @@ app.post("/postar_comentario/:id_pacote", (req, res) => {
     });
 });//Fim
 
-app.get("/historicoCompras", (req, res) => { 
+//Rota para pegar os dados de PACOTE_VIAGEM para mostrar na tela renderizando a pagina historico.ejs
+app.get("/historicoCompras", (req, res) => {
+    //Faz o select das compras que o cliente fez
+    //Para isso fazemos o join das tabelas relacionadas as compras
     connection.query(`SELECT PACOTE_VIAGEM.nome_pacote, PACOTE_VIAGEM.destino, PACOTE_VIAGEM.preco
-	FROM PACOTE_VIAGEM
+    FROM PACOTE_VIAGEM
     JOIN COMPRA ON PACOTE_VIAGEM.id_pacote = COMPRA.id_pacote_fk
     JOIN CLIENTE_CONTA ON CLIENTE_CONTA.user_name =  COMPRA.user_name_fk
     WHERE CLIENTE_CONTA.email = "${clienteEmail}";`, (err, results) => {
         if(err) throw err;
 
+        //Faz o select para pegar somente o somatorio do preço das compras
         connection.query(`SELECT SUM(PACOTE_VIAGEM.preco) AS Total 
         FROM PACOTE_VIAGEM
         JOIN COMPRA ON PACOTE_VIAGEM.id_pacote = COMPRA.id_pacote_fk
@@ -216,42 +232,51 @@ app.get("/historicoCompras", (req, res) => {
         WHERE CLIENTE_CONTA.email = "${clienteEmail}";`, (err2, results2) => {
             if(err2) throw err2;
             console.log(results2);
-            res.render('historico', { compras: results, results2 });
+            res.render('historico', { compras: results, results2 }); //Renderiza a pagina historico.ejs
         });
     });
-});
+});//Fim
 
+//Rota para renderizar a pagina atualizar.ejs
 app.get("/atualizar", (req, res) => {
-    res.render("atualizar.ejs");
-});
+    res.render("atualizar.ejs"); //Renderiza a pagina atualizar.ejs
+});//Fim
 
+//Rota para fazer a atualização dos dados do usuario
 app.post("/atualizarnome", (req, res) => {
-    const { nome_completo, user_name, senha, idade } = req.body;
+    const { nome_completo, user_name, senha, idade } = req.body; //Pega os dados inseridos na pagina atualizar.ejs
 
+    //Faz o update dos dados
     connection.query(`UPDATE CLIENTE_CONTA SET nome_completo = "${nome_completo}", senha = "${senha}", idade = "${idade}" WHERE user_name = "${user_name}"`, (err, results) => {
         if(err) throw err;
 
-        res.render("login");
+        res.render("login"); //Depois de atualizar os dados o usuario é redirecionado para a pagina de login
     });
-});
+});//Fim
 
+//Rota para renderizar a pagina de confirmar dados para deletar conta
 app.get("/deletar", (req, res) => {
-    res.render("deletar.ejs");
-});
+    res.render("deletar.ejs"); //Renderiza pagina deletar.ejs
+});//Fim
 
+//Rota para deletar a conta de um usuario
 app.post("/deletarconta", (req, res) => {
-    const { user_name, senha } = req.body;
+    const { user_name, senha } = req.body; //Paga os dados inseridos da pagina deletar.ejs
 
     console.log(user_name);
     console.log(senha);
 
+    //Deleta as compras feitas pelo usuario
     connection.query('DELETE FROM COMPRA WHERE user_name_fk = ?', [user_name], (err, result) => {
         if (err) throw err;
 
+        //Verifica se senha é realmente a senha do usuario
         if (result.affectedRows > 0 || senha === clienteSenha) {
+            //Deleta a postagens do usuario
             connection.query('DELETE FROM POSTA WHERE user_name_fk = ?', [user_name], (errPosta, resultPosta) => {
                 if (errPosta) throw errPosta;
 
+                //Deleta a conta do cliente
                 connection.query('DELETE FROM CLIENTE_CONTA WHERE user_name = ? AND senha = ?', [user_name, senha], (errCompra, resultCompra) => {
                     if (errCompra) throw errCompra;
 
@@ -259,10 +284,10 @@ app.post("/deletarconta", (req, res) => {
                 });
             });
         } else {
-            res.send('Credenciais inválidas ou a conta não foi encontrada.');
+            res.send('Credenciais inválidas ou a conta não foi encontrada.'); //Envia uma aviso de que algun dado está invalido
         }
     });
-});
+});//Fim
 
 //Inicia o servidor
 app.listen(port, () => {

@@ -13,7 +13,7 @@
   <ul>
     <% pacotes.forEach(pacote => { %>
       <li>
-        <%= pacote.detalhes_pacote %> - <%= pacote.destino %> - <%= pacote.preco %> - <%= pacote.nome_pacote %> - <%= pacote.data_viagem %> - <%= pacote.nome_fornecedor %> - <%= pacote.contato_fornecedor %> - <%= pacote.sevico_fornecido %>
+        <%= pacote.detalhes_pacote %> - <%= pacote.destino %> - <%= pacote.preco %> - <%= pacote.nome_pacote %> - <%= pacote.data_viagem %> - <%= pacote.nome_fornecedor %> - <%= pacote.nome_promocao %> - <%= pacote.descricao_promocao %> - <%= pacote.valor_desconto %> - <%= pacote.ValorComDesconto %>
         
         <!-- Formulário separado para cada pacote -->
         <form action="/compra" method="post">
