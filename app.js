@@ -48,7 +48,7 @@ app.use(express.static("public"));
 //Rotas
 //Rota principal chama index.ejs
 app.get('/', (req, res) => {
-    res.render('index'); //Rederiza a pagina index.ejs no navegador
+    res.render('login'); //Rederiza a pagina index.ejs no navegador
 });//Fim
 
 //Rota para a pagina de login
@@ -164,17 +164,20 @@ app.post('/compra', (req, res) => {
 app.get("/comentarios/:id_pacote", (req, res) => {
     const id_pacote = req.params.id_pacote; //Pega o valor de id pacote assado por parametro na URL
 
+    console.log(id_pacote);
+
     //Select no banco de dados
     connection.query(
         `SELECT CLIENTE_CONTA.user_name, FEEDBACK_CLIENTE.data_comentario, FEEDBACK_CLIENTE.comentario, PACOTE_VIAGEM.nome_pacote
         FROM CLIENTE_CONTA
         JOIN POSTA ON CLIENTE_CONTA.cpf = POSTA.cpf_fk AND CLIENTE_CONTA.user_name = POSTA.user_name_fk
         JOIN FEEDBACK_CLIENTE ON POSTA.id_feedback_fk = FEEDBACK_CLIENTE.id_feedback
-        LEFT JOIN PACOTE_VIAGEM ON FEEDBACK_CLIENTE.id_pacote_fk = PACOTE_VIAGEM.id_pacote
+        JOIN PACOTE_VIAGEM ON FEEDBACK_CLIENTE.id_pacote_fk = PACOTE_VIAGEM.id_pacote
         WHERE PACOTE_VIAGEM.id_pacote = ?
         ORDER BY FEEDBACK_CLIENTE.data_comentario;`, [id_pacote],
         (err, results) => {
             if(err) throw err;
+            console.log(results);
             res.render("comentarios", { comentarios: results, id_pacote }); //Renderiza a pagina comentarios.ejs com os dados do select
         }
     );
@@ -189,25 +192,17 @@ app.post("/postar_comentario/:id_pacote", (req, res) => {
     connection.query('INSERT INTO FEEDBACK_CLIENTE SET data_comentario = NOW(), comentario = ?, id_pacote_fk = ?', [comentario, req.params.id_pacote], (err1, results1) => {
         if(err1) throw err1;
 
-        console.log(results1);
-
         //Faz um slect para pegar informações
-        connection.query(`SELECT id_feedback FROM FEEDBACK_CLIENTE`, (err2, results2) => {
+        connection.query(`SELECT id_feedback, comentario FROM FEEDBACK_CLIENTE WHERE id_pacote_fk = ?`, [req.params.id_pacote], (err2, results2) => {
             if(err2) throw err2;
 
-            const {id_feedback} = results2[results2.length - 1];
-
-            console.log(results2[results2.length - 1]);
-
             //Faz outro select para pegar informações
-            connection.query(`SELECT user_name, cpf FROM CLIENTE_CONTA`, (err3, results3) => {
+            connection.query(`SELECT user_name, cpf FROM CLIENTE_CONTA WHERE email = ?`, [clienteEmail], (err3, results3) => {
                 if(err3) throw err3;
-
-                console.log(results3);
 
                 const {user_name, cpf} = results3[0];
 
-                connection.query(`INSERT INTO POSTA SET ?`, {cpf_fk: cpf, user_name_fk: user_name, id_feedback_fk: id_feedback});
+                connection.query(`INSERT INTO POSTA SET ?`, {cpf_fk: cpf, user_name_fk: user_name, id_feedback_fk: results2[results2.length - 1].id_feedback});
 
                 res.redirect("/comentarios/" + req.params.id_pacote); //Redireciona a pagina para comentarios.ejs
             });
