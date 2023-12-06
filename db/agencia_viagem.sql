@@ -39,7 +39,7 @@ CREATE TABLE PROMOCAO(
 	nome_promocao VARCHAR(50),
 	descricao_promocao VARCHAR(500),
     valor_desconto DECIMAL(10, 2),
-	id_promocao INTEGER PRIMARY KEY
+	id_promocao INTEGER PRIMARY KEY AUTO_INCREMENT
 );
 
 CREATE TABLE TEM(
@@ -74,36 +74,62 @@ CREATE TABLE COMPRA(
 
 ALTER TABLE FEEDBACK_CLIENTE ADD FOREIGN KEY(id_pacote_fk) REFERENCES PACOTE_VIAGEM(id_pacote);
 
-INSERT INTO PACOTE_VIAGEM (detalhes_pacote, destino, preco, nome_pacote, data_viagem) VALUES 
-("Viagem para Inglaterra, com visita a pontos turisticos.", "Inglaterra", 20000.00, "Pacote Viagem dos Sonhos", "2024-01-10 12:30:00");
+INSERT INTO PACOTE_VIAGEM (detalhes_pacote, destino, preco, nome_pacote, data_viagem) VALUES
+('Pacote de aventura nas praias', 'Cancún', 1800.00, 'Aventura nas Praias', '2023-09-10 11:30:00'),
+('Pacote histórico em cidade antiga', 'Roma', 1600.75, 'Explorando Roma Antiga', '2023-07-05 10:00:00'),
+('Pacote de ecoturismo na floresta', 'Amazonas', 2200.50, 'Expedição na Amazônia', '2023-08-15 13:45:00'),
+('Pacote de esqui nas montanhas', 'Alpes Suíços', 2500.25, 'Esqui nos Alpes', '2023-12-01 09:15:00'),
+('Pacote cultural em cidade medieval', 'Praga', 1200.00, 'Descobrindo Praga', '2023-10-20 14:30:00'),
+('Pacote de praia em ilha paradisíaca', 'Maldivas', 3000.50, 'Paraíso nas Maldivas', '2023-11-08 12:00:00'),
+('Pacote de lua de mel exótica', 'Bali', 2800.75, 'Romance em Bali', '2023-06-25 18:45:00'),
+('Pacote de negócios com conferência', 'Nova York', 3500.00, 'Conferência em Nova York', '2023-04-20 08:00:00'),
+('Pacote de aventura nas cavernas', 'Grutas de Postojna', 1900.25, 'Exploração de Cavernas', '2023-07-15 10:30:00'),
+('Pacote de aventura nas montanhas', 'Suiça', 1800.00, 'Aventura nas Montanhas', '2023-09-10 20:30:00');
 
-INSERT INTO PACOTE_VIAGEM (detalhes_pacote, destino, preco, nome_pacote, data_viagem) VALUES 
-("Viagem para França, com visita a pontos turisticos.", "França", 34000.00, "Pacote Viage até Paris", "2024-01-25 15:00:00");
+INSERT INTO FORNECEDOR (nome_fornecedor, contato_fornecedor, servico_fornecido) VALUES
+('Empresa A Ltda', '(123) 456-7890', 'Serviços de Buffet'),
+('Fornecedores & Cia', '(987) 654-3210', 'Aluguel de Equipamentos'),
+('Decoração Charmosa', '(555) 123-4567', 'Decoração de Eventos'),
+('Transportadora Veloz', '(777) 888-9999', 'Serviços de Transporte'),
+('Click Fotografias', '(333) 222-1111', 'Fotografia e Vídeo'),
+('Música ao Vivo Eventos', '(999) 444-3333', 'Serviços de Música ao Vivo'),
+('Espaço Versátil', '(777) 555-6666', 'Aluguel de Espaço para Eventos'),
+('Flores & Encantos', '(888) 777-6666', 'Serviços de Flores e Arranjos'),
+('Iluminação Profissional', '(111) 222-3333', 'Serviços de Iluminação'),
+('Aluguel de Tendas & Estruturas', '(555) 888-7777', 'Aluguel de Tendas');
 
-INSERT INTO PACOTE_VIAGEM (detalhes_pacote, destino, preco, nome_pacote, data_viagem) VALUES 
-("Viagem para Italia, com visita a pontos turisticos.", "Italia", 26000.00, "Pacote Conhecendo a Italia", "2024-02-10 18:30:00");
+INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES 
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(7, 7),
+(8, 8),
+(9, 9),
+(10, 10);
 
-INSERT INTO FORNECEDOR (nome_fornecedor, contato_fornecedor, servico_fornecido) VALUES 
-("Empresa Hotels", "hotels@email.com", "Hospedagem");
+INSERT INTO PROMOCAO (nome_promocao, descricao_promocao, valor_desconto) VALUES
+('Verão20', 'Promoção de Verão 2023', 100.00),
+('Inverno21', 'Descontos especiais para o Inverno', 75.50),
+('FimDeAno', 'Celebre o final do ano com descontos', 120.25),
+('Carnaval2023', 'Promoção especial para o Carnaval', 50.00),
+('PrimaveraColorida', 'Descontos na Primavera', 80.75),
+('BlackFriday', 'Ofertas imperdíveis na Black Friday', 200.00),
+('DiaDosNamorados', 'Especial para casais apaixonados', 90.50),
+('VoltaAsAulas', 'Descontos para a volta às aulas', 30.00),
+('FeriadoProlongado', 'Aproveite o feriado com descontos', 150.25),
+('PromoçãoRelâmpago', 'Ofertas relâmpago por tempo limitado', 70.00);
 
-INSERT INTO FORNECEDOR (nome_fornecedor, contato_fornecedor, servico_fornecido) VALUES 
-("Empresa Full Foods", "ffoods@email.com", "Restalrante");
-
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (1, 1);
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (1, 2);
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (2, 1);
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (2, 2);
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (3, 1);
-INSERT INTO PARCERIA (id_pacote_fk, id_fornecedor_fk) VALUES (3, 2);
-
-INSERT INTO PROMOCAO (nome_promocao, descricao_promocao, valor_desconto, id_promocao) VALUES 
-("Viagem de Fim de Ano", "Com o fim de ano chagando é hora de aproveitar a vida e viajar para o lugar dos sonhos com nossas promoções", 2000.00, 1);
-
-INSERT INTO PROMOCAO (nome_promocao, descricao_promocao, valor_desconto, id_promocao) VALUES 
-("Fim de Ano Viajando", "Com o fim de ano chagando é hora de aproveitar a vida e viajar para o lugar dos sonhos com nossas promoções", 1000.00, 2);
-INSERT INTO PROMOCAO (nome_promocao, descricao_promocao, valor_desconto, id_promocao) VALUES 
-("Aproveitando o Fim de Ano", "Com o fim de ano chagando é hora de aproveitar a vida e viajar para o lugar dos sonhos com nossas promoções", 3000.00, 3);
-
-INSERT INTO TEM (id_pacote_fk, id_promocao_fk) VALUES (1, 1);
-INSERT INTO TEM (id_pacote_fk, id_promocao_fk) VALUES (2, 2);
-INSERT INTO TEM (id_pacote_fk, id_promocao_fk) VALUES (3, 3);
+INSERT INTO TEM (id_pacote_fk, id_promocao_fk) VALUES 
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(7, 7),
+(8, 8),
+(9, 9),
+(10, 10);

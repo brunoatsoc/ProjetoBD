@@ -10,7 +10,7 @@
 
 //Define configurações iniciais
 const express = require("express");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const bodyParser = require("body-parser");
 const { render } = require("ejs");
 const e = require("express");
@@ -36,7 +36,7 @@ connection.connect((err) => {
         return;
     }
 
-    console.log("Cenectado ao MsSQL com ID " + connection.threadId); //Isso será ipresso no console no caso de sucesso
+    console.log("Conectado ao MySQL com ID " + connection.threadId); //Isso será ipresso no console no caso de sucesso
 });//Fim
 
 //Configura o express
@@ -48,13 +48,18 @@ app.use(express.static("public"));
 //Rotas
 //Rota principal chama index.ejs
 app.get('/', (req, res) => {
-    res.render('login'); //Rederiza a pagina index.ejs no navegador
+    res.render('index'); //Rederiza a pagina index.ejs no navegador
 });//Fim
 
 //Rota para a pagina de login
 app.get("/loginPage", (req, res) => {
     res.render("login.ejs"); //Renderiza a pagina login.ejs no navegador
 });//Fim
+
+//Rota para a pagina de opções
+app.get("/options", (req, res) => {
+    res.render("options.ejs"); //Renderiza a pagina options.ejs no navegador
+});
 
 //Rota para a pagina de cadastro
 app.post('/cadastro', (req, res) => {
@@ -66,7 +71,7 @@ app.post('/cadastro', (req, res) => {
   
         if(results.length > 0){
             //Se email, usuario ou CPF já está em uso, exibe mensagem de erro(vou adicionar uma pagina de erro aqui)
-            res.send('Usiário já cadastrado. Por favor, escolha outro usuário.');
+            res.send('Usuário já cadastrado. Por favor, escolha outro usuário.');
         }else{
             //Email não está em uso, então o cadastro pode ser feito
             const usuario = { nome_completo, email, senha, cpf, user_name, idade };
@@ -95,7 +100,7 @@ app.post('/login', (req, res) => {
   
             //Se estiver certo sera redirecionado para a pagina que mostra a lista de pacotes de viagem
             if(results.length > 0){
-                res.send('<a href="lista">Lista de Pacotes</a> <a href="historicoCompras">Histórico de compras</a> <a href="atualizar">Atualizar Informações</a> <a href="deletar">Deletar Conta</a>');
+                res.redirect('/options');
             }else{
                 res.send('Credenciais inválidas!');
             }
@@ -105,6 +110,40 @@ app.post('/login', (req, res) => {
   
 //Rota para a pagina de mostrar a lista de pacotes disponiveis
 app.get('/lista', (req, res) => {
+    //Comando select com join para trazer as informações dos pacotes de viagens
+    connection.query(`SELECT	PACOTE_VIAGEM.id_pacote, PACOTE_VIAGEM.detalhes_pacote, PACOTE_VIAGEM.destino, PACOTE_VIAGEM.preco, PACOTE_VIAGEM.nome_pacote, PACOTE_VIAGEM.data_viagem, IFNULL(PROMOCAO.nome_promocao, "Sem Promoção") AS NomePromocao, IFNULL(PROMOCAO.descricao_promocao, "Sem Promoção") AS DescricaoPromocao, IFNULL(PROMOCAO.valor_desconto, "Sem Promoção") AS ValorDesconto, IFNULL(PACOTE_VIAGEM.preco - PROMOCAO.valor_desconto, "Sem Promoção") AS ValorComDesconto,
+    GROUP_CONCAT(FORNECEDOR.nome_fornecedor) as Fornecedores,
+    GROUP_CONCAT(FORNECEDOR.contato_fornecedor) as ContatoFornecedor,
+    GROUP_CONCAT(FORNECEDOR.servico_fornecido) as Servio
+    FROM PACOTE_VIAGEM
+    JOIN PARCERIA ON PACOTE_VIAGEM.id_pacote = PARCERIA.id_pacote_fk
+    JOIN FORNECEDOR ON PARCERIA.id_fornecedor_fk = FORNECEDOR.id_fornecedor
+    LEFT JOIN TEM ON PACOTE_VIAGEM.id_pacote = TEM.id_pacote_fk
+    LEFT JOIN PROMOCAO ON PROMOCAO.id_promocao = TEM.id_promocao_fk
+    GROUP BY PACOTE_VIAGEM.id_pacote, PACOTE_VIAGEM.detalhes_pacote,
+     PACOTE_VIAGEM.destino,
+     PACOTE_VIAGEM.preco,
+     PACOTE_VIAGEM.nome_pacote,
+     PACOTE_VIAGEM.data_viagem,
+     PROMOCAO.nome_promocao,
+     PROMOCAO.descricao_promocao,
+     PROMOCAO.valor_desconto;`, (err, results) => {
+        if(err) throw err;
+        res.render('lista', { pacotes: results }); //Vai renderizar a pagina de pacotes de viagem, os dados estão na variavel pacotes
+    });
+});//Fim
+
+//Rota para a pagina de mostrar a lista de pacotes disponiveis
+app.get('/qtdpacotes', (req, res) => {
+    //Comando select com join para trazer as informações dos pacotes de viagens
+    connection.query(`SELECT IFNULL(PACOTE_VIAGEM.nome_pacote, "Total") AS Nome,  COUNT(PACOTE_VIAGEM.id_pacote) AS Contagem FROM PACOTE_VIAGEM GROUP BY PACOTE_VIAGEM.nome_pacote WITH ROLLUP;`, (err, results) => {
+        if(err) throw err;
+        res.render('contagem', { pacotes: results }); //Vai renderizar a pagina de pacotes de viagem, os dados estão na variavel pacotes
+    });
+});//Fim
+
+//Rota para a pagina de mostrar a lista de pacotes disponiveis que são menores que 2000
+app.get('/menordoismil', (req, res) => {
     //Comando select com join para trazer as informações dos pacotes de viagens
     connection.query(`SELECT	PACOTE_VIAGEM.id_pacote, PACOTE_VIAGEM.detalhes_pacote, PACOTE_VIAGEM.destino, PACOTE_VIAGEM.preco, PACOTE_VIAGEM.nome_pacote, PACOTE_VIAGEM.data_viagem, PROMOCAO.nome_promocao, PROMOCAO.descricao_promocao, PROMOCAO.valor_desconto, PACOTE_VIAGEM.preco - PROMOCAO.valor_desconto AS ValorComDesconto,
     GROUP_CONCAT(FORNECEDOR.nome_fornecedor) as Fornecedores,
@@ -122,7 +161,126 @@ GROUP BY PACOTE_VIAGEM.id_pacote, PACOTE_VIAGEM.detalhes_pacote,
      PACOTE_VIAGEM.data_viagem,
      PROMOCAO.nome_promocao,
      PROMOCAO.descricao_promocao,
-     PROMOCAO.valor_desconto;`, (err, results) => {
+     PROMOCAO.valor_desconto
+HAVING PACOTE_VIAGEM.preco < 2000;`, (err, results) => {
+        if(err) throw err;
+        res.render('lista', { pacotes: results }); //Vai renderizar a pagina de pacotes de viagem, os dados estão na variavel pacotes
+    });
+});//Fim
+
+//Rota para a pagina de mostrar a lista de pacotes disponiveis ordenados do menor para o maior
+app.get('/menormaior', (req, res) => {
+    //Comando select com join para trazer as informações dos pacotes de viagens
+    connection.query(`SELECT
+    PACOTE_VIAGEM.id_pacote,
+    PACOTE_VIAGEM.detalhes_pacote,
+    PACOTE_VIAGEM.destino,
+    PACOTE_VIAGEM.preco,
+    PACOTE_VIAGEM.nome_pacote,
+    PACOTE_VIAGEM.data_viagem,
+    IFNULL(PROMOCAO.nome_promocao, "Sem Promoção") AS NomePromocao,
+    IFNULL(PROMOCAO.descricao_promocao, "Sem Promoção") AS DescricaoPromocao,
+    IFNULL(PROMOCAO.valor_desconto, "Sem Promoção") AS ValorDesconto,
+    IFNULL(PACOTE_VIAGEM.preco - PROMOCAO.valor_desconto, "Sem Promoção") AS ValorComDesconto,
+    GROUP_CONCAT(FORNECEDOR.nome_fornecedor) as Fornecedores,
+    GROUP_CONCAT(FORNECEDOR.contato_fornecedor) as ContatoFornecedor,
+    GROUP_CONCAT(FORNECEDOR.servico_fornecido) as Servico
+FROM
+    PACOTE_VIAGEM
+    JOIN PARCERIA ON PACOTE_VIAGEM.id_pacote = PARCERIA.id_pacote_fk
+    JOIN FORNECEDOR ON PARCERIA.id_fornecedor_fk = FORNECEDOR.id_fornecedor
+    LEFT JOIN TEM ON PACOTE_VIAGEM.id_pacote = TEM.id_pacote_fk
+    LEFT JOIN PROMOCAO ON PROMOCAO.id_promocao = TEM.id_promocao_fk
+GROUP BY
+    PACOTE_VIAGEM.id_pacote,
+    PACOTE_VIAGEM.detalhes_pacote,
+    PACOTE_VIAGEM.destino,
+    PACOTE_VIAGEM.preco,
+    PACOTE_VIAGEM.nome_pacote,
+    PACOTE_VIAGEM.data_viagem,
+    PROMOCAO.nome_promocao,
+    PROMOCAO.descricao_promocao,
+    PROMOCAO.valor_desconto
+ORDER BY
+    PACOTE_VIAGEM.preco ASC;`, (err, results) => {
+        if(err) throw err;
+        res.render('lista', { pacotes: results }); //Vai renderizar a pagina de pacotes de viagem, os dados estão na variavel pacotes
+    });
+});//Fim
+
+//Rota para a pagina de mostrar a lista de pacotes disponiveis mostrando o pacote de menor preço
+app.get('/min', (req, res) => {
+    //Comando select com join para trazer as informações dos pacotes de viagens
+    connection.query(`SELECT
+    PACOTE_VIAGEM.id_pacote,
+    PACOTE_VIAGEM.detalhes_pacote,
+    PACOTE_VIAGEM.destino,
+    PACOTE_VIAGEM.preco,
+    PACOTE_VIAGEM.nome_pacote,
+    PACOTE_VIAGEM.data_viagem,
+    IFNULL(PROMOCAO.nome_promocao, "Sem Promoção") AS NomePromocao,
+    IFNULL(PROMOCAO.descricao_promocao, "Sem Promoção") AS DescricaoPromocao,
+    IFNULL(PROMOCAO.valor_desconto, "Sem Promoção") AS ValorDesconto,
+    IFNULL(PACOTE_VIAGEM.preco - PROMOCAO.valor_desconto, "Sem Promoção") AS ValorComDesconto,
+    GROUP_CONCAT(FORNECEDOR.nome_fornecedor) as Fornecedores,
+    GROUP_CONCAT(FORNECEDOR.contato_fornecedor) as ContatoFornecedor,
+    GROUP_CONCAT(FORNECEDOR.servico_fornecido) as Servico
+FROM
+    PACOTE_VIAGEM
+    JOIN PARCERIA ON PACOTE_VIAGEM.id_pacote = PARCERIA.id_pacote_fk
+    JOIN FORNECEDOR ON PARCERIA.id_fornecedor_fk = FORNECEDOR.id_fornecedor
+    LEFT JOIN TEM ON PACOTE_VIAGEM.id_pacote = TEM.id_pacote_fk
+    LEFT JOIN PROMOCAO ON PROMOCAO.id_promocao = TEM.id_promocao_fk
+GROUP BY
+    PACOTE_VIAGEM.id_pacote,
+    PACOTE_VIAGEM.detalhes_pacote,
+    PACOTE_VIAGEM.destino,
+    PACOTE_VIAGEM.nome_pacote,
+    PACOTE_VIAGEM.data_viagem,
+    PROMOCAO.nome_promocao,
+    PROMOCAO.descricao_promocao,
+    PROMOCAO.valor_desconto
+HAVING
+    PACOTE_VIAGEM.preco = (SELECT MIN(preco) FROM PACOTE_VIAGEM);`, (err, results) => {
+        if(err) throw err;
+        res.render('lista', { pacotes: results }); //Vai renderizar a pagina de pacotes de viagem, os dados estão na variavel pacotes
+    });
+});//Fim
+
+//Rota para a pagina de mostrar a lista de pacotes disponiveis mostrando o pacote de maior preço
+app.get('/max', (req, res) => {
+    //Comando select com join para trazer as informações dos pacotes de viagens
+    connection.query(`SELECT
+    PACOTE_VIAGEM.id_pacote,
+    PACOTE_VIAGEM.detalhes_pacote,
+    PACOTE_VIAGEM.destino,
+    PACOTE_VIAGEM.preco,
+    PACOTE_VIAGEM.nome_pacote,
+    PACOTE_VIAGEM.data_viagem,
+    IFNULL(PROMOCAO.nome_promocao, "Sem Promoção") AS NomePromocao,
+    IFNULL(PROMOCAO.descricao_promocao, "Sem Promoção") AS DescricaoPromocao,
+    IFNULL(PROMOCAO.valor_desconto, "Sem Promoção") AS ValorDesconto,
+    IFNULL(PACOTE_VIAGEM.preco - PROMOCAO.valor_desconto, "Sem Promoção") AS ValorComDesconto,
+    GROUP_CONCAT(FORNECEDOR.nome_fornecedor) as Fornecedores,
+    GROUP_CONCAT(FORNECEDOR.contato_fornecedor) as ContatoFornecedor,
+    GROUP_CONCAT(FORNECEDOR.servico_fornecido) as Servico
+FROM
+    PACOTE_VIAGEM
+    JOIN PARCERIA ON PACOTE_VIAGEM.id_pacote = PARCERIA.id_pacote_fk
+    JOIN FORNECEDOR ON PARCERIA.id_fornecedor_fk = FORNECEDOR.id_fornecedor
+    LEFT JOIN TEM ON PACOTE_VIAGEM.id_pacote = TEM.id_pacote_fk
+    LEFT JOIN PROMOCAO ON PROMOCAO.id_promocao = TEM.id_promocao_fk
+GROUP BY
+    PACOTE_VIAGEM.id_pacote,
+    PACOTE_VIAGEM.detalhes_pacote,
+    PACOTE_VIAGEM.destino,
+    PACOTE_VIAGEM.nome_pacote,
+    PACOTE_VIAGEM.data_viagem,
+    PROMOCAO.nome_promocao,
+    PROMOCAO.descricao_promocao,
+    PROMOCAO.valor_desconto
+HAVING
+    PACOTE_VIAGEM.preco = (SELECT MAX(preco) FROM PACOTE_VIAGEM);`, (err, results) => {
         if(err) throw err;
         res.render('lista', { pacotes: results }); //Vai renderizar a pagina de pacotes de viagem, os dados estão na variavel pacotes
     });
@@ -154,7 +312,7 @@ app.post('/compra', (req, res) => {
         //Faz insert na tabela compra
         connection.query('INSERT INTO COMPRA SET ?', { id_pacote_fk: id_pacote, cpf_fk: cpf, user_name_fk: user_name }, (err, results) => {
             if(err) throw err;
-            res.send(`Compra realizada com sucesso! <a href="lista">Voltar para lista de pacotes</a>`); //Exibe manssagem e coloca um link para o usuario voltar a pagina de lista de pacotes
+            res.send(`Compra realizada com sucesso!<a href="/lista">Voltar</a>`); //Exibe manssagem e coloca um link para o usuario voltar a pagina de lista de pacotes
         });
     });
 });//Fim
@@ -214,18 +372,22 @@ app.post("/postar_comentario/:id_pacote", (req, res) => {
 app.get("/historicoCompras", (req, res) => {
     //Faz o select das compras que o cliente fez
     //Para isso fazemos o join das tabelas relacionadas as compras
-    connection.query(`SELECT PACOTE_VIAGEM.nome_pacote, PACOTE_VIAGEM.destino, PACOTE_VIAGEM.preco
+    connection.query(`SELECT PACOTE_VIAGEM.nome_pacote, PACOTE_VIAGEM.destino, PACOTE_VIAGEM.preco - PROMOCAO.valor_desconto AS promocao
     FROM PACOTE_VIAGEM
     JOIN COMPRA ON PACOTE_VIAGEM.id_pacote = COMPRA.id_pacote_fk
     JOIN CLIENTE_CONTA ON CLIENTE_CONTA.user_name =  COMPRA.user_name_fk
+    JOIN TEM ON TEM.id_pacote_fk = PACOTE_VIAGEM.id_pacote
+    JOIN PROMOCAO ON PROMOCAO.id_promocao = TEM.id_promocao_fk
     WHERE CLIENTE_CONTA.email = "${clienteEmail}";`, (err, results) => {
         if(err) throw err;
 
         //Faz o select para pegar somente o somatorio do preço das compras
-        connection.query(`SELECT SUM(PACOTE_VIAGEM.preco) AS Total 
+        connection.query(`SELECT SUM(PACOTE_VIAGEM.preco - PROMOCAO.valor_desconto) AS Total
         FROM PACOTE_VIAGEM
         JOIN COMPRA ON PACOTE_VIAGEM.id_pacote = COMPRA.id_pacote_fk
         JOIN CLIENTE_CONTA ON CLIENTE_CONTA.user_name =  COMPRA.user_name_fk
+        JOIN TEM ON TEM.id_pacote_fk = PACOTE_VIAGEM.id_pacote
+        JOIN PROMOCAO ON PROMOCAO.id_promocao = TEM.id_promocao_fk
         WHERE CLIENTE_CONTA.email = "${clienteEmail}";`, (err2, results2) => {
             if(err2) throw err2;
             console.log(results2);

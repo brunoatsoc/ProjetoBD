@@ -1,4 +1,4 @@
-<!-- views/historico.ejs -->
+<!-- views/contagem.ejs -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -26,60 +26,44 @@
             font-size: 50px;
         }
 
-        .historico {
+        .contagem {
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            margin-bottom: 5px;
+            padding: 40px;
             width: 33em;
             height: auto;
+            margin-bottom: 20px;
             border-radius: 10px;
             background-color: #f5f5f5;
         }
-
-
     </style>
 </head>
 <body>
     <div class="main">
         <div class="title">
-            <h1>Histórico de Compras</h1>
+            <h1>Relatório de Pacotes</h1>
         </div>
 
-        <div class="historico">
+        <div class="contagem">
             <table class="table table-bordered">
-                <thead>
+                <tr>
+                    <th>Nome do Pacote</th>
+                    <th>Quantidade Pacote</th>
+                </tr>
+                <% pacotes.forEach(pacote => { %>
                     <tr>
-                        <th scope="col">Nome do Pacote</th>
-                        <th scope="col">Destino</th>
-                        <th scope="col">Preço</th>
-                    </tr> 
-                </thead>
-                <tbody>
-                    <% for(let i = 0; i < compras.length; i++) { %>
-                        <tr>
-                            <td><%= compras[i].nome_pacote %></td>
-                            <td><%= compras[i].destino %></td>
-                            <td><%= compras[i].promocao %></td>
-                        </tr>
-                    <% } %>
-            
-                    <!-- Mostrar o total apenas uma vez -->
-                    <tr>
-                        <td colspan="2"><strong>Total</strong></td>
-                        <td><%= results2[0].Total %></td>
+                        <td><%= pacote.Nome %></td>
+                        <td><%= pacote.Contagem %></td>
                     </tr>
-                </tbody>
+                <% }); %>
             </table>
         </div>
-
-        <button type="button" class="btn btn-primary" id="voltar">Voltar</button>
+        <button type="button" class="btn btn-primary" id="back">Voltar</button>
     </div>
     <script>
-        const voltar = document.getElementById('voltar');
-
-        voltar.addEventListener('click', () => {
-            window.location.href = '/options';
+        const back = document.getElementById('back');
+        back.addEventListener('click', () => {
+            window.location.href = '/lista';
         });
     </script>
 </body>
